@@ -33,7 +33,7 @@ function baterPonto() {
             const uuidFormatado = uuid.replace(/\0/g, "");
 
             $.ajax({
-                url: "api/pontoBatido",
+                url: "api/nfc/ponto",
                 type: "POST",
                 dataType: "json",
                 data: {
@@ -43,23 +43,38 @@ function baterPonto() {
                     nome: nomeCompleto,
                     telefone: telefoneFormatado,
                 },
-                success: function (data) {
+                success: function (data2) {
+                    if(data2.error) {
+                        Swal.fire({
+                            title: "Erro",
+                            html: data.error,
+                            icon: "error",
+                            confirmButtonText: "Ok",
+                            didClose: () => {
+                                location.reload();
+                            }
+                        });
+                    }
 
-                    Swal.fire({
-                        title: "Sucesso",
-                        html: `
-                            Olá ${nomeCompleto}!
-                            <br>
-                            Seu cartão de identificação foi lido com sucesso!
-                            <br><br>
-                            Data de Entrada: ${new Date().toLocaleString()}<br>
-                            ID do Cartão: ${uuidFormatado}
-                            <br>
-                            Sua entrada foi registrada com sucesso!
-                        `,
-                        icon: "success",
-                        confirmButtonText: "Ok",
-                    });
+                    if(data2.read) {
+                        const {data, hora, tipo} = data2;
+                        Swal.fire({
+                            title: "Sucesso",
+                            html: `
+                                Olá, ${nomeCompleto}!<br>
+                                Você bateu o ponto de ${tipo} às ${hora} do dia ${data}.<br><br>
+                                ID do Cartão: ${uuidFormatado}<br>
+                                Sua entrada foi registrada com sucesso!
+                            
+                            `,
+                            icon: "success",
+                            confirmButtonText: "Ok",
+                            //After clicking the button, the modal will close and the page will be reloaded
+                            onClose: () => {
+                                location.reload();
+                            }
+                        })
+                    }
                 },
                 error: function(data) {
                     const error = data.responseJSON.error;
@@ -68,11 +83,12 @@ function baterPonto() {
                         html: error,
                         icon: "error",
                         confirmButtonText: "Ok",
+                        didClose: () => {
+                            location.reload();
+                        }
                     });
                 }
             })
-
-            
         },
     });
 }

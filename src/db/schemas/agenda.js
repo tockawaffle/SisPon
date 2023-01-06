@@ -6,6 +6,7 @@ const agendaSchema = new Schema({
     nome: {type: String, required: true},
     sobrenome: {type: String, required: true},
     telefone: {type: String, required: true},
+    dataDeRegistro: {type: String, required: true},
     datas: {type: [{}], required: true}
 })
 

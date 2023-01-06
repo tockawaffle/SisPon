@@ -1,39 +1,158 @@
+const { NFC, KEY_TYPE_A } = require("nfc-pcsc");
+const { compare } = require("bcrypt");
 const router = require("express").Router();
 const moment = require("moment");
 const agendaSchema = require("@db/schemas/agenda.js");
 const adminSchema = require("@db/schemas/adminSchema.js");
-const { compare } = require("bcrypt");
 
-router.post("/pontoBatido", async (req, res) => {
+router.post("/nfc/ponto", async (req, res) => {
     const { uid, type, uuid, nome, telefone } = req.body;
-    if (!uid || !type || !uuid || !nome || !telefone)
+    if (!uid || !type || !uuid || !nome || !telefone) {
         return res.status(400).json({ error: "Dados inválidos!" });
+    }
 
-    const dataCompleta = moment().format("DD/MM/YYYY");
+    const dataCompleta = "07/01/2022";
     const horaCompleta = moment().format("HH:mm:ss");
 
     const horaCorretaEntrada =
-        moment().format("HH:mm:ss") >= "20:00:00" &&
-        moment().format("HH:mm:ss") <= "23:00:00";
+        moment().format("HH:mm:ss") >= "08:00:00" &&
+        moment().format("HH:mm:ss") <= "08:30:00";
     const horaCorretaSaida =
-        moment().format("HH:mm:ss") >= "17:45:00" &&
+        moment().format("HH:mm:ss") >= "09:35:00" &&
         moment().format("HH:mm:ss") <= "18:30:00";
 
-    //Compara se a hora atual está entre 08:00:00 e 08:15:00
     if (horaCorretaEntrada) {
-        console.log("Entrada");
         const data = await agendaSchema.findOne({ _id: uid });
-        if (!data)
-            return res.status(404).json({ error: "Usuário não encontrado!" });
-
-        console.log(data);
-    } else if (horaCorretaSaida) {
-    } else {
-        return res
-            .status(400)
-            .json({
-                error: "Você não pode bater ponto fora do horário aceitável!<br><br>Horário de entrada: 08:00:00 - 08:15:00<br>Horário de saída: 17:45:00 - 18:30:00",
+        if (!data) {
+            return res.status(400).json({
+                error: "Ponto de Entrada: Usuário não encontrado!",
             });
+        }
+
+        const pontoBatido = data.datas.find(
+            (data) =>
+                data[dataCompleta] &&
+                data[dataCompleta].find(
+                    (ponto) => ponto.entrada && ponto.entrada.uuid === uuid
+                )
+        );
+
+        if (pontoBatido) {
+            console.log(pontoBatido);
+            return res.status(400).json({
+                error: "Ponto de Entrada: Você já fez o ponto de entrada hoje!",
+            });
+        }
+
+        let temp = {};
+        temp[dataCompleta] = [
+            { data: dataCompleta, entrada: { hora: horaCompleta, uuid: uuid, nome: nome } },
+        ];
+        data.datas.push(temp);
+
+        await data.save();
+
+        const dataAtualizada = await agendaSchema.findOne({ _id: uid });
+        if (!dataAtualizada) {
+            return res.status(404).json({
+                error: "Ponto de Entrada: Erro ao atualizar o banco de dados!",
+            });
+        }
+
+        const dataDeHoje = dataAtualizada.datas.find(
+            (data) => data.data === dataCompleta
+        );
+
+        if (!dataDeHoje) {
+            return res.status(404).json({
+                error: "Ponto de Entrada: Erro ao atualizar o banco de dados!",
+            });
+        }
+        return res.status(200).json({
+            read: true,
+            data: dataDeHoje.data,
+            hora: dataDeHoje.hora,
+            tipo: dataDeHoje.tipo,
+        });
+    } else if (horaCorretaSaida) {
+        const data = await agendaSchema.findOne({ _id: uid });
+        if (!data) {
+            return res.status(404).json({
+                error: "Ponto de Saída: Usuário não encontrado!",
+            });
+        }
+        const pontoBatido = data.datas.find(
+            (data) =>
+                data[dataCompleta] &&
+                data[dataCompleta].find(
+                    (ponto) => ponto.saida && ponto.entrada.uuid === uuid
+                )
+        );
+        if (pontoBatido) {
+            return res.status(400).json({
+                error: "Ponto de Saída: Você já fez o ponto de saída hoje!",
+            });
+        }
+        const ponto = data.datas.find(
+            (data) =>
+                data[dataCompleta] &&
+                data[dataCompleta].find(
+                    (ponto) => ponto.entrada && ponto.entrada.uuid === uuid
+                )
+        );
+        let warns;
+        if (!ponto) {
+            warns = "Ponto de Saída: Você não fez o ponto de entrada hoje!";
+            let temp = {};
+            temp[dataCompleta] = [
+                { saida: { hora: horaCompleta, uuid: uuid, nome: nome } },
+            ];
+            data.datas.push(temp);
+        }
+
+        data.datas.map((data) => {
+            if (data[dataCompleta]) {
+                data[dataCompleta].map((ponto) => {
+                    if (ponto.entrada && ponto.entrada.uuid === uuid) {
+                        ponto.saida = {
+                            hora: horaCompleta,
+                            uuid: uuid,
+                            nome: nome,
+                        };
+                    }
+                });
+            }
+        });
+        await data.markModified("datas");
+        await data.save();
+        const dataAtualizada = await agendaSchema.findOne({ _id: uid });
+        if (!dataAtualizada) {
+            return res.status(404).json({
+                error: "Ponto de Saída: Erro ao atualizar o banco de dados!",
+            });
+        }
+        const dataDeHoje = dataAtualizada.datas.find(
+            (data) =>
+                data[dataCompleta] &&
+                data[dataCompleta].find(
+                    (ponto) => ponto.saida && ponto.saida.uuid === uuid
+                )
+        );
+        if (!dataDeHoje) {
+            return res.status(404).json({
+                error: "Ponto de Saída: Erro ao atualizar o banco de dados!",
+            });
+        }
+
+        return res.status(200).json({
+            read: true,
+            data: dataDeHoje.data
+
+        });
+    } else {
+        return res.status(400).json({
+            error: "Você não pode bater ponto fora do horário aceitável!<br><br>Horário de entrada: 08:00:00 - 08:15:00<br>Horário de saída: 17:45:00 - 18:30:00",
+        });
     }
 });
 
@@ -55,18 +174,93 @@ router.post("/autenticar", async (req, res) => {
     res.status(200).json({ auth: true, msg: "Autenticado com sucesso!" });
 });
 
-router.post("registrarCartao", async (req, res) => {s
-    const { nome, sobrenome, telefone } = req.body;
+router.post("/registrarCartao", async (req, res) => {
+    try {
+        const { nome, sobrenome, telefone, uid } = req.body;
+        if (!nome || !sobrenome || !telefone)
+            return res.status(400).json({ error: "Dados inválidos!" });
 
-    if (!nome || !sobrenome || !telefone)
+        const data = await agendaSchema.findOne({ _id: nome });
+        if (data) {
+            return res.status(400).json({ error: "Usuário já cadastrado!" });
+        }
+
+        const dataDeRegistro = moment().format("DD/MM/YYYY");
+        const nanoid = import("nanoid").then((nanoid) => {
+            return nanoid.nanoid(16);
+        });
+        const uuid = await nanoid;
+        await agendaSchema.create({
+            _id: uid,
+            uuid,
+            nome,
+            sobrenome,
+            telefone,
+            dataDeRegistro,
+            datas: [],
+        });
+
+        const updtUser = await agendaSchema.findOne({ _id: uid });
+        if (!updtUser) {
+            return res
+                .status(500)
+                .json({ error: "Erro ao cadastrar usuário!" });
+        }
+
+        res.status(200).json({
+            msg: "Usuário cadastrado com sucesso!",
+            code: 100,
+            uuid,
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.post("/nfc/write", (req, res) => {
+    const { uid, uuid, nome, sobrenome, telefone } = req.body;
+    if (!uid || !uuid || !nome || !sobrenome || !telefone)
         return res.status(400).json({ error: "Dados inválidos!" });
 
-    const data = await agendaSchema.findOne({ _id:nome });
-    if (data) {
-        return res.status(400).json({ error: "Usuário já cadastrado!" });
+    try {
+        const nfc = new NFC(); // optionally you can pass logger
+        nfc.on("reader", (reader) => {
+            reader.on("card", async (card) => {
+                if (card.uid != uid)
+                    return res.status(400).json({ error: "Cartões Diferem!" });
+                await reader.authenticate(4, KEY_TYPE_A, "FFFFFFFFFFFF");
+                const data = Buffer.allocUnsafe(16);
+                data.fill(0);
+                data.write(uuid);
+                await reader.write(4, data, 16);
+
+                await reader.authenticate(5, KEY_TYPE_A, "FFFFFFFFFFFF");
+                const data2 = Buffer.allocUnsafe(16);
+                data2.fill(0);
+                data2.write(nome);
+                await reader.write(5, data2, 16);
+
+                await reader.authenticate(6, KEY_TYPE_A, "FFFFFFFFFFFF");
+                const data3 = Buffer.allocUnsafe(16);
+                data3.fill(0);
+                data3.write(sobrenome);
+                await reader.write(6, data3, 16);
+
+                await reader.authenticate(8, KEY_TYPE_A, "FFFFFFFFFFFF");
+                const data4 = Buffer.allocUnsafe(16);
+                data4.fill(0);
+                data4.write(telefone);
+                await reader.write(8, data4, 16);
+
+                res.status(200).json({
+                    msg: "Cartão registrado com sucesso!",
+                });
+                reader.close();
+            });
+        });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
     }
-
-
 });
 
 module.exports = router;
