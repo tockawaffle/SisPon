@@ -11,14 +11,14 @@ router.post("/nfc/ponto", async (req, res) => {
         return res.status(400).json({ error: "Dados inválidos!" });
     }
 
-    const dataCompleta = "07/01/2022";
+    const dataCompleta = moment().format("DD/MM/YYYY");
     const horaCompleta = moment().format("HH:mm:ss");
 
     const horaCorretaEntrada =
         moment().format("HH:mm:ss") >= "08:00:00" &&
-        moment().format("HH:mm:ss") <= "08:30:00";
+        moment().format("HH:mm:ss") <= "16:30:00";
     const horaCorretaSaida =
-        moment().format("HH:mm:ss") >= "09:35:00" &&
+        moment().format("HH:mm:ss") >= "17:35:00" &&
         moment().format("HH:mm:ss") <= "18:30:00";
 
     if (horaCorretaEntrada) {
@@ -46,7 +46,15 @@ router.post("/nfc/ponto", async (req, res) => {
 
         let temp = {};
         temp[dataCompleta] = [
-            { data: dataCompleta, entrada: { hora: horaCompleta, uuid: uuid, nome: nome } },
+            {
+                data: dataCompleta,
+                entrada: {
+                    hora: horaCompleta,
+                    uuid: uuid,
+                    nome: nome,
+                    tipo: "Entrada",
+                },
+            },
         ];
         data.datas.push(temp);
 
@@ -60,19 +68,22 @@ router.post("/nfc/ponto", async (req, res) => {
         }
 
         const dataDeHoje = dataAtualizada.datas.find(
-            (data) => data.data === dataCompleta
+            (data) =>
+                data[dataCompleta] &&
+                data[dataCompleta].find(
+                    (ponto) => ponto.entrada && ponto.entrada.uuid === uuid
+                )
         );
-
         if (!dataDeHoje) {
             return res.status(404).json({
-                error: "Ponto de Entrada: Erro ao atualizar o banco de dados!",
+                error: "Ponto de Saída: Erro ao atualizar o banco de dados!",
             });
         }
         return res.status(200).json({
             read: true,
-            data: dataDeHoje.data,
-            hora: dataDeHoje.hora,
-            tipo: dataDeHoje.tipo,
+            data: dataDeHoje[dataCompleta][0].data,
+            hora: dataDeHoje[dataCompleta][0].entrada.hora,
+            tipo: dataDeHoje[dataCompleta][0].entrada.tipo,
         });
     } else if (horaCorretaSaida) {
         const data = await agendaSchema.findOne({ _id: uid });
@@ -146,8 +157,9 @@ router.post("/nfc/ponto", async (req, res) => {
 
         return res.status(200).json({
             read: true,
-            data: dataDeHoje.data
-
+            data: dataDeHoje[dataCompleta][0].data,
+            hora: dataDeHoje[dataCompleta][0].entrada.hora,
+            tipo: dataDeHoje[dataCompleta][0].entrada.tipo,
         });
     } else {
         return res.status(400).json({
@@ -223,7 +235,7 @@ router.post("/nfc/write", (req, res) => {
         return res.status(400).json({ error: "Dados inválidos!" });
 
     try {
-        const nfc = new NFC(); // optionally you can pass logger
+        const nfc = new NFC();
         nfc.on("reader", (reader) => {
             reader.on("card", async (card) => {
                 if (card.uid != uid)

@@ -49,8 +49,12 @@ function admin() {
                     <button id="registrarPonto" onclick="registrarPonto()" class="btn btn-primary">Registrar Ponto Manual</button>
                     <button id="editarCartao" onclick="editarCartao()" class="btn btn-primary">Editar Informações do Cartão</button>
                 </div>
+            </div>
+            <br>
+            <div class="container d-flex justify-content-center mt-3">
                 <div id="horariosBatidos"></div>
             </div>
+
         `,
         width: "83%",
         position: "center-end",
