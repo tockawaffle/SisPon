@@ -1,6 +1,6 @@
 const { NFC, KEY_TYPE_A } = require("nfc-pcsc");
 const router = require("express").Router();
-const agendaSchema = require("@db/schemas/agenda.js");
+const agendaSchema = require("../../../../db/schemas/agenda");
 const moment = require("moment");
 
 router.get("/nfc", async (req, res) => {
@@ -134,39 +134,83 @@ router.get("/nfc/read/authorized", async (req, res) => {
 router.get("/horarios", async (req, res) => {
     const horarios = await agendaSchema.find();
     const dataHoje = moment().format("DD/MM/YYYY");
-    const horariosHoje = horarios.filter((horario) => {
-        const data = horario.datas;
-        return data.filter((data) => {
-            return data[dataHoje];
-        });
-    });
-
-    const horariosFormatados = horariosHoje.map((horario) => {
-        const data = horario.datas;
-        const dataFormatada = data.filter((data) => {
-            return data[dataHoje];
+    const queryData = req.query.data;
+    console.log(queryData)
+    if (queryData === dataHoje || !queryData) {
+        const horariosHoje = horarios.filter((horario) => {
+            const data = horario.datas;
+            return data.filter((data) => {
+                return data[dataHoje];
+            });
         });
 
-        if (dataFormatada.length > 0) {
-            const tData = dataFormatada[0][dataHoje];
-            const entrada = tData.map((t) => {
-                return t.entrada ?? "Ainda não entrou";
-            });
-            const saida = tData.map((t) => {
-                return t.saida ?? "Ainda não saiu";
+        const horariosFormatados = horariosHoje.map((horario) => {
+            const data = horario.datas;
+            const dataFormatada = data.filter((data) => {
+                return data[dataHoje];
             });
 
-            return {
-                nome: horario.nome + " " + horario.sobrenome,
-                entrada,
-                saida,
-            };
-        }
-    });
+            if (dataFormatada.length > 0) {
+                const tData = dataFormatada[0][dataHoje];
+                const entrada = tData.map((t) => {
+                    return t.entrada ?? "Ainda não entrou";
+                });
+                const saida = tData.map((t) => {
+                    return t.saida ?? "Ainda não saiu";
+                });
 
-    res.status(200).json({
-        horarios: horariosFormatados,
-    });
+                return {
+                    nome: horario.nome + " " + horario.sobrenome,
+                    entrada,
+                    saida,
+                };
+            }
+        });
+
+        res.status(200).json({
+            horarios: horariosFormatados,
+        });
+    } else {
+        const horarioSolicitado = horarios.filter((horario) => {
+            const data = horario.datas;
+            return data.filter((data) => {
+                return data[queryData];
+            })
+        })
+
+        const horariosFormatados = horarioSolicitado.map((horario) => {
+            const data = horario.datas;
+            const dataFormatada = data.filter((data) => {
+                return data[queryData];
+            });
+            
+            if (dataFormatada.length > 0) {
+                const tData = dataFormatada[0][queryData];
+                const entrada = tData.map((t) => {
+                    return t.entrada
+                });
+                const saida = tData.map((t) => {
+                    return t.saida
+                });
+
+                return {
+                    nome: horario.nome + " " + horario.sobrenome,
+                    entrada,
+                    saida,
+                };
+            } else {
+                return {
+                    nome: horario.nome + " " + horario.sobrenome,
+                    entrada: ["Não trabalhou"],
+                    saida:[ "Não trabalhou"],
+                };
+            }
+        });
+
+        res.status(200).json({
+            horarios: horariosFormatados,
+        });
+    }
 });
 
 module.exports = router;

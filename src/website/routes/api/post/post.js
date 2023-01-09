@@ -2,8 +2,8 @@ const { NFC, KEY_TYPE_A } = require("nfc-pcsc");
 const { compare } = require("bcrypt");
 const router = require("express").Router();
 const moment = require("moment");
-const agendaSchema = require("@db/schemas/agenda.js");
-const adminSchema = require("@db/schemas/adminSchema.js");
+const agendaSchema = require("../../../../db/schemas/agenda");
+const adminSchema = require("../../../../db/schemas/adminSchema.js");
 
 router.post("/nfc/ponto", async (req, res) => {
     const { uid, type, uuid, nome, telefone } = req.body;

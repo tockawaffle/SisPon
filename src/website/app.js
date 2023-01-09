@@ -1,6 +1,4 @@
-require("module-alias/register");
 require("dotenv").config();
-require("@nfc/index.js");
 const express = require("express");
 const app = express();
 const getRoutes = require("./routes/get/get");
@@ -10,8 +8,8 @@ const putApiRoutes = require("./routes/api/put/put");
 const deleteApiRoutes = require("./routes/api/delete/delete");
 const http = require("http").createServer(app);
 const path = require("path");
-const nfc = require("@nfc/index.js");
-const connectDB = require("@db/db.js");
+const nfc = require("../../src/nfc/index");
+const connectDB = require("../db/db");
 const cors = require("cors");
 
 (async () => {

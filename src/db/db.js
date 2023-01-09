@@ -1,4 +1,5 @@
 const {connect, set} = require("mongoose")
+const {writeLogs} = require("../misc/writeLog")
 
 const connectDB = async () => {
     try {
@@ -15,8 +16,8 @@ const connectDB = async () => {
             `Conectado com sucesso ao banco de dados ${conn.connection.name}.`
         )
     } catch (error) {
-        console.error(error)
-        process.exit(1)
+        await writeLogs("[ Handler ] > Conectando na base de dados. . .\n[ Handler: Erro ] > Base de Dados não conectada, segue o erro: " + error.message)
+        console.error(error.message)
     }
 }
 

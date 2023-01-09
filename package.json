@@ -4,13 +4,17 @@
     "description": "",
     "main": "src/website/app.js",
     "scripts": {
-        "start": "node src/index.js"
+        "prestart": "npm i --loglevel silent",
+        "start": "node src/website/app.js",
+        "build": "pkg --public .",
+        "test": "node src/misc/writeLog.js"
     },
     "type": "commonjs",
     "keywords": [],
     "author": "Tocka",
     "license": "ISC",
     "dependencies": {
+        "7zip-bin": "^5.2.0",
         "bcrypt": "^5.1.0",
         "cors": "^2.8.5",
         "dotenv": "^16.0.3",
@@ -21,21 +25,23 @@
         "mongoose": "^6.8.2",
         "nanoid": "^4.0.0",
         "nfc-pcsc": "^0.8.1",
+        "node-7z": "^3.0.0",
         "node-fetch": "^2.6.7"
     },
-    "_moduleAliases": {
-        "@public": "src/website/public/",
-        "@src": "src/",
-        "@nfc-pcsc": "modules/nfc-pcsc/",
-        "@nfc": "src/nfc/",
-        "@nfc-events": "src/nfc/events/",
-        "@website": "src/website/",
-        "@config": "src/config/",
-        "@database": "src/config/db",
-        "@models": "src/config/db/models/",
-        "@pages": "src/website/public/pages",
-        "@websocket": "src/website/websocket/",
-        "@db": "src/db/",
-        "@api": "src/website/routes/api/"
+    "bin": "src/website/app.js",
+    "pkg": {
+        "scripts": [
+            "src/**/*.js"
+        ],
+        "assets": [
+            "src/website/public/**/*",
+            "node_modules/**/*"
+        ],
+        "targets": [
+            "node16-win-x64",
+            "node16-linux-x64",
+            "node16-macos-x64"
+        ],
+        "outputPath": "dist"
     }
 }
