@@ -1,4 +1,6 @@
-require("dotenv").config();
+require("dotenv").config({
+    path: "../../.env"
+});
 const express = require("express");
 const app = express();
 const getRoutes = require("./routes/get/get");
@@ -8,6 +10,7 @@ const putApiRoutes = require("./routes/api/put/put");
 const deleteApiRoutes = require("./routes/api/delete/delete");
 const http = require("http").createServer(app);
 const path = require("path");
+const open = require('open')
 const nfc = require("../../src/nfc/index");
 const connectDB = require("../db/db");
 const cors = require("cors");
@@ -35,7 +38,6 @@ const cors = require("cors");
     app.use("/", [getRoutes]);
     app.use("/api/", [getApiRoutes, postApiRoutes]);
 
-    nfc.start();
 
     app.use((req, res, next) => {
         res.setTimeout(15000, function () {
@@ -50,11 +52,16 @@ const cors = require("cors");
     });
 
     http.listen(4444, () => {
+        nfc.start();
         console.log(
             `\x1b[35m%s\x1b[0m`,
-            `[ Website ]`,
+            `[ Website ] >`,
             `Website rodando na porta 4444.`
         );
         connectDB()
+        if(process.env.TELEGRAM_BOT) {
+            require("../../src/telegram/bot");
+        } else void(0)
+        // open("http://localhost:4444")
     });
 })();

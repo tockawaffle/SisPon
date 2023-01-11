@@ -70,7 +70,7 @@ function registrarPonto() {
                             <input type="text" class="form-control" id="datepicker" name="data">
 
                             <label for="hora">Hora</label>
-                            <input type="type" class="form-control" id="hourpicker" name="hora" value="${moment().format("HH:MM:SS")}" disabled>
+                            <input type="type" class="form-control" id="hourpicker" placeholder="Utilize este formato de hora: 'HH:MM:SS'" name="hora" value="${moment().format("HH:MM:SS")}">
 
                             <label for="observacao">Observação</label>
                             <textarea class="form-control" id="observacao" name="observacao" rows="3"></textarea>
@@ -78,17 +78,22 @@ function registrarPonto() {
                     </form>
                 `,
                 icon: "success",
-                confirmButtonText: "Ok",
-
+                confirmButtonText: "Continuar",
+                showCancelButton: true,
+                preConfirm: () => {
+                    const tipoPonto = $("#tipoPonto").val();
+                    const data = $("#datepicker").val();
+                    const hora = $("#hourpicker").val();
+                    const observacao = $("#observacao").val();
+                    return { tipoPonto, data, hora, observacao };
+                }
             });
+
             $("#datepicker").datepicker({
                 dateFormat: "dd/mm/yyyy",
                 language: "pt-BR",
                 endDate: "today",
             });
-            $("#hourpicker").datepicker({
-                format: "LT"
-            })
                 
         },
         error: function (data) {

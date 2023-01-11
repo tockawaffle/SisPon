@@ -24,6 +24,7 @@ async function writeLogs(errorToWrite) {
         setTimeout(() => {
             renameSync(oldPath, newPath);
         }, 4500);
+        throw new Error(errorToWrite);
     }
 
     writeFileSync(dir + "/error.log", errorToWrite, (err) => {
@@ -39,7 +40,6 @@ async function writeLogs(errorToWrite) {
             });
         }
     });
-    // throw new Error(errorToWrite);
 }
 
 module.exports.writeLogs = writeLogs;

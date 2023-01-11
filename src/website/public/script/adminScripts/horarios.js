@@ -91,10 +91,13 @@ function horarios() {
                                                             )}</td>
                                                             <td>${
                                                                 h.entrada[0]
-                                                                    .hora
+                                                                    .hora ??
+                                                                "Ainda não entrou"
                                                             }</td>
                                                             <td>${
-                                                                h.saida[0].hora
+                                                                h.saida[0]
+                                                                    .hora ??
+                                                                "Ainda não saiu"
                                                             }</td>
                                                         </tr>
                                                     `;
@@ -140,7 +143,6 @@ function horarios() {
                                 saida: pontoSaida,
                             };
                         });
-
                         const table = `
                             <table class="table table-striped table-bordered table-hover">
                             <thead>
@@ -155,15 +157,18 @@ function horarios() {
                                 ${
                                     horariosFormatados.length > 0
                                         ? horariosFormatados.map((h) => {
-                                              if (!h) return;
-                                              return `
-                                                        <tr>
-                                                            <td>${h.nome}</td>
-                                                            <td>${dataInputFormatado}</td>
-                                                            <td>${h.entrada[0].hora}</td>
-                                                            <td>${h.saida[0].hora}</td>
-                                                        </tr>
-                                                    `;
+                                                if (!h) return;
+                                                const entrada = h.entrada[0] ?? {hora: "Não bateu entrada", nome: "Não bateu entrada"};
+                                                const saida = h.saida[0] ?? {hora: "Não bateu saída", nome: "Não bateu saída"};
+
+                                                return `
+                                                    <tr>
+                                                        <td>${h.nome}</td>
+                                                        <td>${dataInputFormatado}</td>
+                                                        <td>${entrada.hora}</td>
+                                                        <td>${saida.hora}</td>
+                                                    </tr>
+                                                `;
                                           })
                                         : `<tr><td colspan="4">Nenhum horário batido hoje</td></tr>`
                                 }

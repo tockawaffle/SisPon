@@ -135,7 +135,7 @@ router.get("/horarios", async (req, res) => {
     const horarios = await agendaSchema.find();
     const dataHoje = moment().format("DD/MM/YYYY");
     const queryData = req.query.data;
-    console.log(queryData)
+    
     if (queryData === dataHoje || !queryData) {
         const horariosHoje = horarios.filter((horario) => {
             const data = horario.datas;

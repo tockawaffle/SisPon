@@ -7,7 +7,7 @@
         "prestart": "npm i --loglevel silent",
         "start": "node src/website/app.js",
         "build": "pkg --public .",
-        "test": "node src/misc/writeLog.js"
+        "bot": "node src/telegram/bot.js"
     },
     "type": "commonjs",
     "keywords": [],
@@ -23,10 +23,11 @@
         "module-alias": "^2.2.2",
         "moment": "^2.29.4",
         "mongoose": "^6.8.2",
-        "nanoid": "^4.0.0",
+        "nanoid": "^3.3.0",
         "nfc-pcsc": "^0.8.1",
         "node-7z": "^3.0.0",
-        "node-fetch": "^2.6.7"
+        "node-telegram-bot-api": "^0.61.0",
+        "open": "^8.4.0"
     },
     "bin": "src/website/app.js",
     "pkg": {
@@ -38,10 +39,8 @@
             "node_modules/**/*"
         ],
         "targets": [
-            "node16-win-x64",
-            "node16-linux-x64",
-            "node16-macos-x64"
+            "node16-win-x64"
         ],
-        "outputPath": "dist"
+        "outputPath": "bin/"
     }
 }

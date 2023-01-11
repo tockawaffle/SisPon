@@ -1,9 +1,11 @@
 const { NFC, KEY_TYPE_A } = require("nfc-pcsc");
 const { compare } = require("bcrypt");
+const { sendPontoMessage } = require("../../../../telegram/bot.js");
 const router = require("express").Router();
 const moment = require("moment");
 const agendaSchema = require("../../../../db/schemas/agenda");
 const adminSchema = require("../../../../db/schemas/adminSchema.js");
+const nanoid = require("nanoid")
 
 router.post("/nfc/ponto", async (req, res) => {
     const { uid, type, uuid, nome, telefone } = req.body;
@@ -16,7 +18,7 @@ router.post("/nfc/ponto", async (req, res) => {
 
     const horaCorretaEntrada =
         moment().format("HH:mm:ss") >= "08:00:00" &&
-        moment().format("HH:mm:ss") <= "16:30:00";
+        moment().format("HH:mm:ss") <= "08:45:00";
     const horaCorretaSaida =
         moment().format("HH:mm:ss") >= "17:35:00" &&
         moment().format("HH:mm:ss") <= "18:30:00";
@@ -38,7 +40,6 @@ router.post("/nfc/ponto", async (req, res) => {
         );
 
         if (pontoBatido) {
-            console.log(pontoBatido);
             return res.status(400).json({
                 error: "Ponto de Entrada: Você já fez o ponto de entrada hoje!",
             });
@@ -79,6 +80,15 @@ router.post("/nfc/ponto", async (req, res) => {
                 error: "Ponto de Saída: Erro ao atualizar o banco de dados!",
             });
         }
+        sendPontoMessage(
+            {
+                nome,
+                telefone,
+                data: dataDeHoje[dataCompleta][0].data,
+                hora: dataDeHoje[dataCompleta][0].entrada.hora,
+                tipo: dataDeHoje[dataCompleta][0].entrada.tipo,
+            }
+        )
         return res.status(200).json({
             read: true,
             data: dataDeHoje[dataCompleta][0].data,
@@ -155,11 +165,21 @@ router.post("/nfc/ponto", async (req, res) => {
             });
         }
 
+        sendPontoMessage(
+            {
+                nome,
+                telefone,
+                data: dataDeHoje[dataCompleta][0].data,
+                hora: dataDeHoje[dataCompleta][0].saida.hora,
+                tipo: dataDeHoje[dataCompleta][0].saida.tipo,
+            }
+        )
+
         return res.status(200).json({
             read: true,
             data: dataDeHoje[dataCompleta][0].data,
-            hora: dataDeHoje[dataCompleta][0].entrada.hora,
-            tipo: dataDeHoje[dataCompleta][0].entrada.tipo,
+            hora: dataDeHoje[dataCompleta][0].saida.hora,
+            tipo: dataDeHoje[dataCompleta][0].saida.tipo,
         });
     } else {
         return res.status(400).json({
@@ -198,10 +218,7 @@ router.post("/registrarCartao", async (req, res) => {
         }
 
         const dataDeRegistro = moment().format("DD/MM/YYYY");
-        const nanoid = import("nanoid").then((nanoid) => {
-            return nanoid.nanoid(16);
-        });
-        const uuid = await nanoid;
+        const uuid = nanoid.nanoid(16);
         await agendaSchema.create({
             _id: uid,
             uuid,
