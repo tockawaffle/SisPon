@@ -1,19 +1,25 @@
 {
-    "name": "nfc-ponto",
-    "version": "1.0.0",
-    "description": "",
+    "name": "sispon",
+    "version": "1.7.5",
+    "description": "Sistema de Pontos Empresarial",
     "main": "src/website/app.js",
     "scripts": {
         "prestart": "npm i --loglevel silent",
         "start": "node src/website/app.js",
-        "build": "pkg --public .",
+        "build": "node ./build.js",
         "bot": "node src/telegram/bot.js"
     },
     "type": "commonjs",
-    "keywords": [],
+    "keywords": [
+        "pontos",
+        "sistema de pontos",
+        "ponto empresarial",
+        "sistema de ponto empresarial"
+    ],
     "author": "Tocka",
     "license": "ISC",
     "dependencies": {
+        "@angablue/exe": "^1.2.0",
         "7zip-bin": "^5.2.0",
         "bcrypt": "^5.1.0",
         "cors": "^2.8.5",
@@ -27,7 +33,9 @@
         "nfc-pcsc": "^0.8.1",
         "node-7z": "^3.0.0",
         "node-telegram-bot-api": "^0.61.0",
-        "open": "^8.4.0"
+        "open": "^8.4.0",
+        "pkg": "^5.8.0",
+        "resedit": "^1.6.1"
     },
     "bin": "src/website/app.js",
     "pkg": {

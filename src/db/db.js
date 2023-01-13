@@ -2,6 +2,7 @@ const {connect, set} = require("mongoose")
 const {writeLogs} = require("../misc/writeLog")
 
 const connectDB = async () => {
+    console.log(`\x1b[32m%s\x1b[0m`, `[ MongoDB ]`, `Conectando na base de dados. . .`)
     try {
         set('strictQuery', false);
         const conn = await connect(process.env.MONGO_URI, {

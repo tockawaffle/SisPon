@@ -85,15 +85,40 @@ function registrarPonto() {
                     const data = $("#datepicker").val();
                     const hora = $("#hourpicker").val();
                     const observacao = $("#observacao").val();
-                    return { tipoPonto, data, hora, observacao };
+
+                    if (tipoPonto == "" || data == "" || hora == "") {
+                        Swal.showValidationMessage(
+                            "Preencha todos os campos obrigatórios!"
+                        );
+                    }
+                    
+                    $.ajax({
+                        url: "api/nfc/ponto/manual",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            uid,
+                            type,
+                            uuid,
+                            nome: nomeCompleto,
+                            telefone,
+                            tipoPonto,
+                            data,
+                            hora,
+                            observacao,
+                        },
+                    })
                 }
             });
-
+            
             $("#datepicker").datepicker({
                 dateFormat: "dd/mm/yyyy",
                 language: "pt-BR",
                 endDate: "today",
             });
+
+            
+
                 
         },
         error: function (data) {
