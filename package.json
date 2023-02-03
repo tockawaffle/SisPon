@@ -35,6 +35,7 @@
         "node-telegram-bot-api": "^0.61.0",
         "open": "^8.4.0",
         "pkg": "^5.8.0",
+        "pkg-fetch": "^3.4.2",
         "resedit": "^1.6.1"
     },
     "bin": "src/website/app.js",
@@ -47,7 +48,8 @@
             "node_modules/**/*"
         ],
         "targets": [
-            "node16-win-x64"
+            "node16-win-x64",
+            "node16-x86"
         ],
         "outputPath": "bin/"
     }

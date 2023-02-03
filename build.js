@@ -9,18 +9,24 @@ readline.question(
     "Você deseja fazer a build do projeto, ou reverter as variáveis de desenvolvimento? (build/reverse) ",
     (answer) => {
         if (answer === "build") {
-            //read .env file and get the MONGO_URI value
             const env = readFileSync(".env", "utf8");
             const mongoUri = env.match(/MONGO_URI=(.*)/)[1];
             let dbFile = readFileSync("./src/db/db.js", "utf8");
             dbFile = dbFile.replace("process.env.MONGO_URI", `"${mongoUri}"`);
             writeFileSync("./src/db/db.js", dbFile);
 
-            const telegramToken = env.match(/TELEGRAM_BOT=(.*)/)[1];
+            const telegramToken = env.match(/TELEGRAM_BOT_TOKEN=(.*)/)[1];
+            const telegramChatId = env.match(/TELEGRAM_BOT_CHAT_ID=(.*)/)[1];
+            console.log(telegramToken);
+            console.log(telegramChatId);
             let telegramFile = readFileSync("./src/telegram/bot.js", "utf8");
             telegramFile = telegramFile.replace(
-                "process.env.TELEGRAM_BOT",
+                "process.env.TELEGRAM_BOT_TOKEN",
                 `"${telegramToken}"`
+            );
+            telegramFile = telegramFile.replace(
+                "process.env.TELEGRAM_BOT_CHAT_ID",
+                `"${telegramChatId}"`
             );
             writeFileSync("./src/telegram/bot.js", telegramFile);
 
@@ -28,7 +34,7 @@ readline.question(
 
             const build = exe({
                 entry: "package.json",
-                out: "./bin/sispon.exe",
+                out: "./bin/SisPon.exe",
                 version: "1.7.5",
                 target: "node16-win-x64",
                 icon: "./favicon.ico",
@@ -43,11 +49,38 @@ readline.question(
                     FileVersion: "1.7.5",
                     LegalTrademarks: "Tocka Software",
                     PrivateBuild: "Tocka Software",
-                    SpecialBuild: "Tocka Software"
+                    SpecialBuild: "Tocka Software",
                 },
             });
 
-            build.then(() => console.log("Build completed!"));
+            build.then(() => {
+                console.log("Build completa!");
+                console.log("Fazendo a reversão das variáveis de desenvolvimento. . .")
+                let dbFile = readFileSync("./src/db/db.js", "utf8");
+                dbFile = dbFile.replace(
+                    `"${mongoUri}"`,
+                    "process.env.MONGO_URI"
+                );
+                writeFileSync("./src/db/db.js", dbFile);
+
+                let telegramFile = readFileSync(
+                    "./src/telegram/bot.js",
+                    "utf8"
+                );
+                telegramFile = telegramFile.replace(
+                    `"${telegramToken}"`,
+                    "process.env.TELEGRAM_BOT_TOKEN"
+                );
+                telegramFile = telegramFile.replace(
+                    `"${telegramChatId}"`,
+                    "process.env.TELEGRAM_BOT_CHAT_ID"
+                );
+                writeFileSync("./src/telegram/bot.js", telegramFile);
+
+                console.log("Variáveis de desenvolvimento recolocadas.");
+                console.log("Build finalizada com sucesso!")
+                readline.close();
+            });
         } else if (answer === "reverse") {
             console.log("Revertendo a build. . .");
 
@@ -61,7 +94,7 @@ readline.question(
             let telegramFile = readFileSync("./src/telegram/bot.js", "utf8");
             telegramFile = telegramFile.replace(
                 /"[0-9]{10}:[a-zA-Z0-9_-]{35}"/,
-                "process.env.TELEGRAM_BOT"
+                "process.env.TELEGRAM_BOT_TOKEN"
             );
             writeFileSync("./src/telegram/bot.js", telegramFile);
 

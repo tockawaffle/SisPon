@@ -5,13 +5,12 @@ const { writeFileSync, mkdirSync, renameSync } = require("fs");
 const { add } = require("node-7z");
 
 async function writeLogs(errorToWrite) {
+    console.log("Called")
     if (!errorToWrite) throw new Error("Nenhum erro foi encontrado.");
     const dir = path.join(__dirname, "../../logs");
     const file = path.join(dir, "/error.log");
 
     if (file) {
-        //Zips the file
-        const pathToZip = sevenZip.path7za;
         const name = moment()
             .format("DD/MM/YYYY HH:MM:SS")
             .replace(/\//g, "_")
@@ -19,7 +18,7 @@ async function writeLogs(errorToWrite) {
         const oldPath = path.join(__dirname, `../../${name}.zip`);
         const newPath = path.join(__dirname, `../../logs/${name}.zip`);
         add(`${name}.zip`, file, {
-            $bin: pathToZip,
+            $bin: sevenZip.path7za,
         });
         setTimeout(() => {
             renameSync(oldPath, newPath);

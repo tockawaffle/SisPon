@@ -1,9 +1,9 @@
 require("dotenv").config();
 const tBot = require("node-telegram-bot-api");
-const writeLogs = require("../misc/writeLog")
+const writeLogs = require("../misc/writeLog");
 
 try {
-    const bot = new tBot(process.env.TELEGRAM_BOT, { polling: true });
+    const bot = new tBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });''
     console.log(
         `\x1b[35m%s\x1b[0m`,
         `[ Telegram ] >`,
@@ -21,12 +21,13 @@ try {
         if (!nome || !telefone || !data || !hora || !tipo) {
             return "Dados insuficientes para notificar o ponto.";
         }
+        console.log;
         const message = `
         *Novo Ponto Registrado*\n\nNome: ${nome}\nTelefone: ${telefone}\nData: ${data} - ${hora}\nTipo de Ponto: ${tipo}\nObservação: ${
             observação ?? "Nenhuma a ser feita."
         }
     `;
-        bot.sendMessage("-771627713", message, {
+        bot.sendMessage(process.env.TELEGRAM_BOT_CHAT_ID, message, {
             parse_mode: "Markdown",
         });
     }
@@ -88,5 +89,6 @@ try {
 
     module.exports = { sendPontoMessage };
 } catch (error) {
-    writeLogs(error.message)
+    console.log(error)
+    writeLogs(error.message);
 }

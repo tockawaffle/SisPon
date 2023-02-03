@@ -19,10 +19,16 @@ router.post("/nfc/ponto", async (req, res) => {
     const horaCorretaEntrada =
         moment().format("HH:mm:ss") >= "07:50:00" &&
         moment().format("HH:mm:ss") <= "08:30:00";
-    const horaCorretaSaida =
+    let horaCorretaSaida =
         moment().format("HH:mm:ss") >= "17:35:00" &&
         moment().format("HH:mm:ss") <= "18:30:00";
 
+    //check if today is a weekend
+        const isWeekend = moment().isoWeekday() == 6 || moment().isoWeekday() == 7;
+        if(isWeekend) {
+            horaCorretaSaida = moment().format("HH:mm:ss") >= "12:30:00" && moment().format("HH:mm:ss") <= "13:00:00";
+        }
+    
     if (horaCorretaEntrada) {
         const data = await agendaSchema.findOne({ _id: uid });
         if (!data) {
@@ -389,7 +395,7 @@ router.post("/nfc/ponto/manual", async (req, res) => {
                 data: dataDeHoje[dataCompleta][0].data,
                 hora: dataDeHoje[dataCompleta][0].entrada.hora,
                 tipo: dataDeHoje[dataCompleta][0].entrada.tipo,
-                observacao,
+                observação: observacao,
             });
             return res.status(200).json({
                 read: true,
@@ -481,7 +487,7 @@ router.post("/nfc/ponto/manual", async (req, res) => {
                 data: dataDeHoje[dataCompleta][0].data,
                 hora: dataDeHoje[dataCompleta][0].saida.hora,
                 tipo: dataDeHoje[dataCompleta][0].saida.tipo,
-                observacao,
+                observação: observacao,
             });
 
             return res.status(200).json({

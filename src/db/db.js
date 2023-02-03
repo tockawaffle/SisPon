@@ -18,7 +18,7 @@ const connectDB = async () => {
         )
     } catch (error) {
         await writeLogs("[ Handler ] > Conectando na base de dados. . .\n[ Handler: Erro ] > Base de Dados não conectada, segue o erro: " + error.message)
-        console.error(error.message)
+        console.log(error.message)
     }
 }
 

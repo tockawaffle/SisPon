@@ -85,6 +85,7 @@ function registrarPonto() {
                     const data = $("#datepicker").val();
                     const hora = $("#hourpicker").val();
                     const observacao = $("#observacao").val();
+                    const telefone = $("#telefone").val();
 
                     if (tipoPonto == "" || data == "" || hora == "") {
                         Swal.showValidationMessage(

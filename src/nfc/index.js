@@ -19,6 +19,7 @@ module.exports = {
 
         setTimeout(() => {
             if (!nfcAvailable) {
+                console.log("ok")
                 writeLogs("[ NFC: Erro ] Não há nenhum leitor NFC conectado na máquina! Por favor, conecte um, ou veja se o dispositivo que você utiliza é compativel com este programa.\nDispositivo Compativel: ACR 122U USB NFC Reader")
             }
         }, 5000)
